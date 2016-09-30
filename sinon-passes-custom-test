@@ -1,0 +1,73 @@
+#!/bin/bash
+# test script built for use with `git bisect` to find a regression
+# usage: git bisect start v1.16.1 v1.15.4  && git bisect run ../test-script.sh
+#
+# Warning: You need a Node version <= 0.12.5
+# Since this script checks out former versions of Sinon, that had build scripts
+# that relied on the directory layout of NPM versions < 3, it is wise to
+# use `nvm` or `n` to set the current Node version to 0.12.5 or equivalent
+
+# To support running this script when it is placed outside of the project
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#echo SCRIPT_DIR=$SCRIPT_DIR
+#echo PWD=$PWD
+
+# delete node_modules to avoid errors on `npm install` - does not delete .bin
+/bin/rm -r node_modules/* 2>/dev/null
+
+# install the karma browser runner
+if [[ -e $SCRIPT_DIR/backup-karma-dir ]]; then
+    echo "Reusing previous Karma download"
+    mkdir node_modules 2>/dev/null
+    cp -r $SCRIPT_DIR/backup-karma-dir/ node_modules/
+else
+    #reinstall
+    npm install karma mocha chai karma-chrome-launcher karma-mocha karma-chai
+
+    # save for later for speed up
+    mkdir "$SCRIPT_DIR/backup-karma-dir"
+    cp -r node_modules/* "$SCRIPT_DIR/backup-karma-dir/"
+fi
+
+npm install && ./build || exit 1
+
+# make a karma config
+cat > $SCRIPT_DIR/karma.conf << EOF
+module.exports = function (config) {
+	config.set({
+		basePath : '.',
+
+		// frameworks to use
+		frameworks : ['mocha', 'chai'],
+
+        reporters : ['progress'],
+
+		// list of files / patterns to load in the browser
+		files : [
+            'sinon/pkg/sinon.js',
+			'regression.test.js'
+		],
+
+		browsers : ['Chrome' ],
+        singleRun : true
+	});
+};
+EOF
+
+# add a regression test
+cat > $SCRIPT_DIR/regression.test.js << EOF
+describe('#1113', function() {
+
+    it('should pass', function() {
+        var actual = ['foo'];
+        actual.hasCustomProperty = true;
+
+        var match = sinon.match(['foo']);
+        assert.equal(match.test(actual),true); // => false
+    });
+});
+EOF
+
+
+# run the tests
+./node_modules/.bin/karma start  $SCRIPT_DIR/karma.conf
