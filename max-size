@@ -1,0 +1,50 @@
+#!/bin/bash
+
+if (( $# < 2 )) ;then
+    echo "Missing params: <file> <maxbytes>"
+    exit 1
+fi
+
+file="$1"
+maxsize=$2
+
+build(){
+    rm $file
+    gulp sass
+    [[ -e $file ]]
+}
+
+size(){
+    wc -c  $file | awk '{print $1}'
+}
+
+clean(){
+    rm $file
+    git reset --hard
+}
+
+
+build
+
+if (( $? != 0 ));then
+    echo "Build step erred! Skipping current commit to avoid false negatives ..."
+
+    # Returning 125 in a script is equivalent to doing a `git bisect skip` on the CLI
+    # See `git help bisect` for more info
+    exit 125
+fi
+
+sz=$(size)
+clean
+
+(( $sz < $maxsize))
+STATUS=$?
+
+if (( $STATUS == 0 )); then
+    echo "Size OK ($sz < $maxsize)"
+else
+    echo "Size too big! ($sz > $maxsize) "
+fi
+
+exit $STATUS
+
