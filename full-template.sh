@@ -1,4 +1,15 @@
 #!/bin/bash
+# Template for using with `git bisect run`
+# For an example of a fully expanded file, see sinon-1526.sh
+# Example run 
+# ../my-test-script.sh # Test FAIL
+# git bisect bad master 
+# git checkout v2.0.0
+# ../my-test-script.sh # Test OK
+# git bisect good 
+# git bisect run ../my-test-script.sh
+
+
 artefact="some-resulting-file.js"
 
 ##
