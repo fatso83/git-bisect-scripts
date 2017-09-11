@@ -2,6 +2,7 @@
 # Regression finding script for https://github.com/sinonjs/sinon/issues/1552
 #
 # Example run
+# n 0.12.5 # choose Node version 0.12.x to avoid NPM node modules layout errors
 # ../sinon-1552-1508-git-bisect-script.sh # Test FAIL
 # git bisect bad master
 # git checkout v2.0.0
@@ -11,6 +12,7 @@
 
 
 build(){
+    npm i eslint@latest -D # to avoid peerDependencies error breaking the build
     npm install \
         && (./build.js || ./build)
 }
