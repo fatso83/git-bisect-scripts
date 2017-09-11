@@ -1,5 +1,5 @@
 #!/bin/bash
-# Template for using with `git bisect run`
+# Template for using with `git bisect run`. Place it outside (over) the folder the git repo resides in.
 # For an example of a fully expanded file, see sinon-1526.sh
 # Example run 
 # ../my-test-script.sh # Test FAIL
@@ -12,7 +12,34 @@
 
 artefact="some-resulting-file.js"
 
-##
+# You do not need to customize this function: just customize the clean, build and do_test sections
+main(){
+    clean
+
+    build
+
+    # Ignore the results of this test if the build step failed
+    if (( $? != 0 ));then
+        echo "Build step erred! Skipping current commit to avoid false negatives ..."
+
+        # Returning 125 in a script is equivalent to doing a `git bisect skip` on the CLI
+        # See `git help bisect` for more info
+        exit 125
+    fi
+
+    do_test
+
+    STATUS=$?
+
+    if (( $STATUS == 0 )); then
+        echo "Test OK"
+    else
+        echo "Test FAIL"
+    fi
+
+    exit $STATUS
+}
+
 build(){
     # run compile step, Makefile, grunt, gulp, whatever, that results in a file
     echo "we are producing files" > $artefact
@@ -22,10 +49,12 @@ build(){
 }
 
 clean(){
-    rm $artefact
+    rm $artefact 
     git reset --hard
 
     # Maybe also add `git clean -fd`? Remember that this file then needs to be outside the repo ...
+    
+    # rm -r node_modules
 }
 
 
@@ -36,26 +65,4 @@ do_test(){
     (( 1 + 1 == 2 ))
 }
 
-build
-
-# Ignore the results of this test if the build step failed
-if (( $? != 0 ));then
-    echo "Build step erred! Skipping current commit to avoid false negatives ..."
-
-    # Returning 125 in a script is equivalent to doing a `git bisect skip` on the CLI
-    # See `git help bisect` for more info
-    exit 125
-fi
-
-do_test
-
-STATUS=$?
-
-if (( $STATUS == 0 )); then
-    echo "Test OK"
-else
-    echo "Test FAIL"
-fi
-
-exit $STATUS
-
+main
