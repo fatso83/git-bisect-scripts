@@ -1,4 +1,5 @@
 # git-bisect-scripts
+[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/fatso83)
 Scripts usable with [Git bisect](https://git-scm.com/docs/git-bisect) - the best way to find where a regression was introduced in your project.
 
 ## What do I do?
