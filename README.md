@@ -5,8 +5,8 @@ Scripts usable with [Git bisect](https://git-scm.com/docs/git-bisect) - the best
 ## What do I do?
 Customize the [template](https://github.com/fatso83/git-bisect-scripts/blob/master/full-template.sh) for your project.
 
-See this [expanded working example](https://github.com/fatso83/git-bisect-scripts/blob/master/sinon-1526.sh) 
-for a test script used in an actual case, sinonjs/sinon#1526.
+See this [expanded working example](https://github.com/fatso83/git-bisect-scripts/blob/master/examples/sinon-1526.sh) 
+for a test script used in an actual case, sinonjs/sinon#1526. There are [many more examples](./examples).
 
 ## Example usage
 
